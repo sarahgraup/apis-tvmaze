@@ -4,7 +4,9 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
-const GLOBAL_URL = "http://api.tvmaze.com/search/shows?"
+//const GLOBAL_URL = "http://api.tvmaze.com/search/shows?"
+const BASE_URL = "http://api.tvmaze.com";
+const NO_IMAGE_FOUND = "https://previews.123rf.com/images/arcady31/arcady311303/arcady31130300032/18519959-vector-oops-symbol.jpg";
 
 
 /** Given a search term, search for tv shows that match that query.
@@ -16,42 +18,20 @@ const GLOBAL_URL = "http://api.tvmaze.com/search/shows?"
 
 async function getShowsByTerm(term) {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
-  
-  let response = await axios.get(GLOBAL_URL, {params:{q:term}});
+  //const noImageFound = "https://previews.123rf.com/images/arcady31/arcady311303/arcady31130300032/18519959-vector-oops-symbol.jpg";
+
+  const response = await axios.get(`${BASE_URL}/search/shows`, {params:{q:term}});
   console.log("got", response);
+  //rename searchTerm
+  return response.data.map((searchTerm) =>{
+    return {
+      id: searchTerm.show.id,
+      name: searchTerm.show.name,
+      summary: searchTerm.show.summary,
+      image: searchTerm.show.image ? searchTerm.show.image.original : NO_IMAGE_FOUND,
+    }});
 
-  
-  console.log(response.data[0].show.id);
-  /*
-  let id = response.data.data.show.id;
-  let name = response.data.data.show.name;
-  let summary = response.data.data.show.summary;
-  let image = response.data.data.show.image;
-  console.log(id);
-  console.log(name);
-  console.log(summary);
-  console.log(image);*/
 
-  
-
-  return [
-    {
-      id: 1767,
-      name: "The Bletchley Circle",
-      summary:
-        `<p><b>The Bletchley Circle</b> follows the journey of four ordinary 
-           women with extraordinary skills that helped to end World War II.</p>
-         <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their 
-           normal lives, modestly setting aside the part they played in 
-           producing crucial intelligence, which helped the Allies to victory 
-           and shortened the war. When Susan discovers a hidden code behind an
-           unsolved murder she is met by skepticism from the police. She 
-           quickly realises she can only begin to crack the murders and bring
-           the culprit to justice with her former friends.</p>`,
-      image:
-          "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-    }
-  ]
 }
 
 
@@ -59,14 +39,16 @@ async function getShowsByTerm(term) {
 
 function populateShows(shows) {
   $showsList.empty();
+  //todo: fix alt for shows
 
   for (let show of shows) {
     const $show = $(
         `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
-           <img 
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg" 
-              alt="Bletchly Circle San Francisco" 
+           <img
+              src="${show.image}"
+
+              alt="Bletchly Circle San Francisco"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -75,7 +57,7 @@ function populateShows(shows) {
                Episodes
              </button>
            </div>
-         </div>  
+         </div>
        </div>
       `);
 
