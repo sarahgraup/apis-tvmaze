@@ -23,12 +23,12 @@ async function getShowsByTerm(term) {
   const response = await axios.get(`${BASE_URL}/search/shows`, {params:{q:term}});
   console.log("got", response);
   //rename searchTerm
-  return response.data.map((searchTerm) =>{
+  return response.data.map((eachShow) =>{
     return {
-      id: searchTerm.show.id,
-      name: searchTerm.show.name,
-      summary: searchTerm.show.summary,
-      image: searchTerm.show.image ? searchTerm.show.image.original : NO_IMAGE_FOUND,
+      id: eachShow.show.id,
+      name: eachShow.show.name,
+      summary: eachShow.show.summary,
+      image: eachShow.show.image ? eachShow.show.image.original : NO_IMAGE_FOUND,
     }});
 
 
@@ -39,7 +39,6 @@ async function getShowsByTerm(term) {
 
 function populateShows(shows) {
   $showsList.empty();
-  //todo: fix alt for shows
 
   for (let show of shows) {
     const $show = $(
@@ -48,7 +47,7 @@ function populateShows(shows) {
            <img
               src="${show.image}"
 
-              alt="Bletchly Circle San Francisco"
+              alt="${show.name}"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -87,8 +86,52 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id) { 
+  const response = await axios(`${BASE_URL}/shows/${id}/episodes`);
+
+  console.log("got", response);
+
+  return response.data.map(eachEpisode=>({
+    id: eachEpisode.id,
+    name: eachEpisode.name,
+    season: eachEpisode.season,
+    episode: eachEpisode.number,
+  }));
+
+
+}
+
+
 
 /** Write a clear docstring for this function... */
 
-// function populateEpisodes(episodes) { }
+function populateEpisodes(episodes) { 
+  $episodesArea.empty();
+
+  for (let episode of episodes) {
+    const $episode = $(
+      `<ul data-show-id="${episode.id}" class="Show col-md-12 col-lg-6 mb-4">
+          <li class="text-primary">${episode.name}
+          (Season ${episode.season} , Episode ${episode.episode})</li>
+        </ul>
+      `);
+
+    $episodesArea.append($episode);  }
+
+  $episodesArea.show();
+
+
+
+}
+
+async function getEpisodes(evt){
+  evt.preventDefault();
+
+  const showEpisodeId = $(evt.target).closest(".Show").data().showId;
+  const episodes = await getEpisodesOfShow(showEpisodeId);
+  populateEpisodes(episodes);
+
+
+}
+
+$showsList.on("click", ".Show-getEpisodes", getEpisodes);
